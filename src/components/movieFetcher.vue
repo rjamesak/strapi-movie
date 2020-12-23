@@ -36,10 +36,10 @@
                     posterName: '',
                 },
                 getMovieName: '',
-                apiAddress: 'http://localhost:1337',
                 headers: {'content-type': 'application/json'},
                 posterUrl: '',
-                categories: []
+                categories: [],
+                movies: []
             }
         },
         methods: {
@@ -53,7 +53,7 @@
                     console.log('good response')
                     return this.parseJSON(resp)
                 }
-                console.log(resp)
+                console.log('bad resp in checkStatus: ', resp)
             },
             parseJSON(resp) {
                 return (resp.json ? resp.json() : resp)
@@ -91,8 +91,7 @@
             },
             getMovie() {
                 console.log('in getMovie')
-                console.log(this.apiAddress)
-                fetch(this.apiAddress + '/movies?title=' + this.getMovieName, {
+                fetch(process.env.VUE_APP_STRAPI_URL + '/movies?title=' + this.getMovieName, {
                     method: 'GET', 
                     headers: this.headers
                 })
@@ -102,7 +101,7 @@
                     // optional chaining to check if poster exists in data
                     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
                     if(data[0]?.poster[0]?.url) {
-                        this.posterUrl = this.apiAddress + data[0].poster[0].url
+                        this.posterUrl = process.env.VUE_APP_STRAPI_URL + data[0].poster[0].url
                         console.log(data[0].poster[0].url)
                     }
                     else {
@@ -112,18 +111,33 @@
                 )
             }
         },
-        mounted() {
-            fetch(this.apiAddress + '/categories', {
+        beforeMount() {
+            //fetch categories
+            fetch(process.env.VUE_APP_STRAPI_URL + '/categories', {
                 method: 'GET',
                 headers: this.headers
             })
             .then(response => {
                 this.checkStatus(response)
-                console.log('mount response: ', response)
+                console.log('categories response: ', response)
             })
             .then(data => {
-                console.log('mount data', data)
+                console.log('categories data', data)
                 this.categories = data
+            })
+
+            //fetch movies
+            fetch(process.env.VUE_APP_STRAPI_URL + '/movies', {
+                method: 'GET',
+                headers: this.headers
+            })
+            .then(response => {
+                console.log('movie response: ', response)
+                this.checkStatus(response)
+            })
+            .then(data => {
+                console.log('movie data: ', data)
+                this.movies = data
             })
         }
     }
@@ -156,6 +170,18 @@
 }
 form div {
     margin: 20px;
+}
+button {
+    padding:0.35em 1.2em;
+    border:0.1em solid #ccc;
+    margin:0.5em 0.3em 0.3em 0;
+    border-radius:0.12em;
+    box-sizing: border-box;
+    font-family: 'Roboto';
+    text-decoration:none;
+    /* color:#FFFFFF; */
+    text-align:center;
+    transition: all 0.2s;
 }
 
 </style>
