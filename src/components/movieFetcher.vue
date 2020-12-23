@@ -1,19 +1,19 @@
 <template>
     <div>
         <form class="post-form">
-            <div>
+            <div class="inputDiv">
                 Enter a movie to add:
                 <input type="text" v-model="postFormData.movieName"/>
             </div>
 
-            <div>
-                <label for="poster-file">choose a movie poster</label>
+            <div class="inputDiv">
+                <label for="poster-file">Upload a movie poster</label>
                 <input type="file" name="poster-file" id="poster-file" @change="posterFileChosen">
             </div>
 
-            <div>
+            <div class="inputDiv">
                 <!-- <button @click.prevent="addMovie" type="submit">Submit</button> -->
-                <button @click.prevent="addMovieWithImage" type="submit">Submit with Image</button>
+                <button @click.prevent="addMovieWithImage" type="submit">Submit</button>
             </div>
         </form>
 
@@ -38,7 +38,8 @@
                 getMovieName: '',
                 apiAddress: 'http://localhost:1337',
                 headers: {'content-type': 'application/json'},
-                posterUrl: ''
+                posterUrl: '',
+                categories: []
             }
         },
         methods: {
@@ -70,12 +71,7 @@
                 .then(data => console.log(data))
             },
             addMovieWithImage() {
-                // const formData = {
-                //     "data" : {"title" : this.postFormData.movieName},
-                //     "files" : {"name" : this.postFormData.posterName},
-                //     "files.poster" : this.posterFile
-                // }
-                // const request = new XMLHttpRequest()
+                
                 const formData = new FormData()
                 const data = {'title' : this.postFormData.movieName}
                 formData.append('data', JSON.stringify(data))
@@ -86,14 +82,8 @@
                     console.log(val[0], ', ', val[1])
                 }
 
-                // request.open('POST', 'http://localhost:1337/movies')
-                // request.send(formData)
-
                 fetch('http://localhost:1337/movies', {
                     method: 'POST',
-                    // headers: {
-                    //     'content-type': 'multipart/form-data'
-                    // },
                     body: formData
                 })
                 .then(response => response.json())
@@ -122,11 +112,27 @@
                 )
             }
         },
+        mounted() {
+            fetch(this.apiAddress + '/categories', {
+                method: 'GET',
+                headers: this.headers
+            })
+            .then(response => {
+                this.checkStatus(response)
+                console.log('mount response: ', response)
+            })
+            .then(data => {
+                console.log('mount data', data)
+                this.categories = data
+            })
+        }
     }
 </script>
 
 <style lang="css" scoped>
 .post-form {
+    display: flex;
+    flex-direction: column;
     width: 50%;
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
     border-style: solid;
@@ -147,6 +153,9 @@
     margin: auto;
     margin-top: 20px;
     box-shadow: 5px 5px 5px rgba(0,0,0,0.2);
+}
+form div {
+    margin: 20px;
 }
 
 </style>
